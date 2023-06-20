@@ -1,5 +1,28 @@
+const { describe } = require("node:test");
 const { sqlConfig } = require("../config/database-connect");
 const sql = require("mssql");
+
+async function effdateToStr(date) {
+  return new Promise((resolve, reject) => {
+    resolve(new Date(date).toLocaleString("en-GB"));
+  });
+}
+async function transdateToStr(date) {
+  return new Promise((resolve, reject) => {
+    resolve(new Date(date).toLocaleString("en-GB"));
+  });
+}
+async function setString(text){
+  return new Promise((resolve, reject) => {
+    resolve(text);
+  });
+}
+
+// async function sqlQueryString(date) {
+//   return new Promise((resolve, reject) => {
+//     resolve(new Date(date).toLocaleString("en-GB"));
+//   });
+// }
 
 const uploadFile = async (req, res) => {
   try {
@@ -12,20 +35,32 @@ const uploadFile = async (req, res) => {
     }
 
     let sqlQuery = "";
-    await data.forEach((element) => {
-     
-        const transdate = new Date(element["transdate"]).toLocaleString('en-GB')
-        const effdate = new Date(element["effdate"]).toLocaleString('en-GB')
-        console.log(transdate , effdate);
-        sqlQuery += `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('2150481808', '${transdate}', '${effdate}', 'No-Book Clearing Cheque Deposit', CAST(${element["Withdrawal"]} AS Numeric(19, 2)), CAST(${element["deposit"]} AS Numeric(19, 2)), CAST(${element["Balance"]} AS Numeric(19, 2)), '${element["terminalno"]}', '${element["period"]}') \nGO\n`;
+    for(let element of data){
+      let {
+        AccNo,
+        transdate,
+        effdate,
+        particular,
+        Withdrawal,
+        deposit,
+        Balance,
+        terminalno,
+        period,
+      } = element;
     
-    });
+      transdate = await transdateToStr(transdate);
+      effdate = await effdateToStr(effdate);
+      console.log(transdate, effdate);
+      sqlQuery += await setString(`INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${AccNo}', '${transdate}', '${effdate}', '${particular}', CAST(${Withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${Balance} AS Numeric(19, 2)), '${terminalno}', '${period}') \nGO\n`)
+
+    }
     console.log(sqlQuery);
+    //เพิ่มข้อมูล ลงในฐานข้อมูล
     // await sql.connect(sqlConfig);
     // const result = await sql.query`SELECT TOP (10) * FROM [ACCLife].[dbo].[BBLDetail] ORDER BY [seq] DESC`;
 
     res.status(200).send({
-      message: "0K",
+      message: "OK",
       // result : result["recordsets"][0]
     });
   } catch (err) {
