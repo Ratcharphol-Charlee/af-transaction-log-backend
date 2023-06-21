@@ -70,8 +70,37 @@ const uploadFile = async (req, res) => {
   }
 };
 
+const selectStatement = async (req, res) => {
+  try {
+    await sql.connect(sqlConfig);
+    const sqlQuery = `SELECT * FROM [ACCLife].[dbo].[BBLDetail]`;
+    const result = await sql.query(sqlQuery);
+
+    res.status(200).send({
+      message: 'ok',
+      result: result.recordset,
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: 'Internal Server Error',
+      result: err.message,
+    });
+  }
+};
+
 const getAllStatement = async (req, res) => {
   try {
+    const { year, month } = req.query
+    await sql.connect(sqlConfig);
+    const sqlQuery=`SELECT TOP (100) * FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}'`
+    const result = await sql.query(sqlQuery);
+  
+    res.status(200).send({
+      message: "ok",
+      req: year + month,
+      result: result["recordset"],
+    });
+ 
   } catch (err) {
     res.status(500).send({
       message: "Internel Server Error",
@@ -80,6 +109,30 @@ const getAllStatement = async (req, res) => {
   }
 };
 
+const deleteStatement = async (req, res) => {
+  try {
+    const { year, month, id } = req.query;
+    await sql.connect(sqlConfig);
+    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}' AND id = ${id}`;
+    const result = await sql.query(sqlQuery);
+
+    res.status(200).send({
+      message: 'ok',
+      req: year + month,
+      deletedId: id,
+      rowsAffected: result.rowsAffected[0],
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: 'Internal Server Error',
+      result: err.message,
+    });
+  }
+};
+
 module.exports = {
   uploadFile,
+  getAllStatement,
+  selectStatement,
+  deleteStatement,
 };
