@@ -12,6 +12,13 @@ async function transdateToStr(date) {
     resolve(new Date(date).toLocaleString("en-GB"));
   });
 }
+async function getYearandMonth(date) {
+  return new Promise((resolve, reject) => {
+    const year = new Date(date).getFullYear
+    const month = new Date(date).getMonth  
+    resolve(year+month);
+  });
+}
 async function setString(text){
   return new Promise((resolve, reject) => {
     resolve(text);
@@ -51,10 +58,12 @@ const uploadFile = async (req, res) => {
       transdate = await transdateToStr(transdate);
       effdate = await effdateToStr(effdate);
       console.log(transdate, effdate);
+      period = await getYearandMonth();
+      console.log(period);
       sqlQuery += await setString(`INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${AccNo}', '${transdate}', '${effdate}', '${particular}', CAST(${Withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${Balance} AS Numeric(19, 2)), '${terminalno}', '${period}') \nGO\n`)
 
     }
-    console.log(sqlQuery);
+    //console.log(sqlQuery);
     //เพิ่มข้อมูล ลงในฐานข้อมูล
     // await sql.connect(sqlConfig);
     // const result = await sql.query`SELECT TOP (10) * FROM [ACCLife].[dbo].[BBLDetail] ORDER BY [seq] DESC`;
