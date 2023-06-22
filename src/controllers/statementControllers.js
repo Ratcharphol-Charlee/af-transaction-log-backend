@@ -29,38 +29,36 @@ const insert = async (req, res) => {
 
     let sqlQuery = "";
     for (let element of data) {
-      delete Object.assign(element, {["Withdrawal"]: element["Debit"] })["Debit"];
-      delete Object.assign(element, {["deposit"]: element["Credit"] })["Credit"];
+      delete Object.assign(element, {["withdrawal"]: element["debit"] })["debit"];
+      delete Object.assign(element, {["deposit"]: element["credit"] })["credit"];
       let {
-        AccNo,
+        accno,
         transdate,
-        effdate,
+        effectdate,
         particular,
-        Withdrawal,
+        withdrawal,
         deposit,
-        Balance,
+        balance,
         terminalno,
         period,
       } = element;
 
-      console.log(element);
-
-      AccNo = AccNo.trim()
-      AccNo = AccNo.replaceAll(/-/g , "")
+      accno = accno.trim()
+      accno = accno.replaceAll(/-/g , "")
      
 
-      Withdrawal = Withdrawal == "" ? (0).toFixed(2) : parseFloat(Withdrawal.replaceAll(/,/g,"")).toFixed(2);
+      withdrawal = withdrawal == "" ? (0).toFixed(2) : parseFloat(withdrawal.replaceAll(/,/g,"")).toFixed(2);
       deposit = deposit == "" ? (0).toFixed(2) : parseFloat(deposit.replaceAll(/,/g,"")).toFixed(2);
-      Balance = Balance == "" ? (0).toFixed(2) : parseFloat(Balance.replaceAll(/,/g,"")).toFixed(2);
+      balance = balance == "" ? (0).toFixed(2) : parseFloat(balance.replaceAll(/,/g,"")).toFixed(2);
       
       period = await getYearMonth(transdate);
       transdate = await transdateToStr(transdate);
-      effdate = await effdateToStr(effdate);
-      
+      effectdate = await effdateToStr(effectdate);
+      //console.log(period ,  transdate, effectdate);
       sqlQuery += await setString(
-        `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${AccNo}', '${transdate}', '${effdate}', '${particular}', CAST(${Withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${Balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n`
+        `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${accno}', '${transdate}', '${effectdate}', '${particular}', CAST(${withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n`
       );
-      // console.log(sqlQuery);
+      console.log(sqlQuery);
 
     }
     return res.status(200).json({
