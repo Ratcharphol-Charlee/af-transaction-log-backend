@@ -31,6 +31,8 @@ const insert = async (req, res) => {
     for (let element of data) {
       delete Object.assign(element, {["withdrawal"]: element["debit"] })["debit"];
       delete Object.assign(element, {["deposit"]: element["credit"] })["credit"];
+      delete Object.assign(element, {["particular"]: element["description"] })["description"];
+      delete Object.assign(element, {["terminalno"]: element["channel"] })["channel"];
       let {
         accno,
         transdate,
