@@ -17,14 +17,21 @@ const insert = async (req, res) => {
   try {
     const { file, data } = req.body;
     if (typeof data != "object" || data.length == 0) {
-      return res.status(400).send({
+      return res
+      .status(400)
+      .json({
         message: "Bad Request",
         result: "data is Object or Array and length more than Zero Only!",
       });
     }
 
+    
+
     let sqlQuery = "";
     for (let element of data) {
+      delete Object.assign(element, {["Withdrawal"]: element["Debit"] })["Debit"];
+      delete Object.assign(element, {["deposit"]: element["Credit"] })["Credit"];
+      
       let {
         AccNo,
         transdate,
@@ -36,6 +43,9 @@ const insert = async (req, res) => {
         terminalno,
         period,
       } = element;
+
+      console.log(element);
+
       AccNo = AccNo.trim()
       AccNo = AccNo.replaceAll(/-/g , "")
      
@@ -54,15 +64,15 @@ const insert = async (req, res) => {
       // console.log(sqlQuery);
 
     }
+    return res.status(200).json({
+      message: "OK",
+      result : data,
+      sql:sqlQuery
+    });
     //เพิ่มข้อมูล ลงในฐานข้อมูล
     // await sql.connect(sqlConfig);
     //const result = await sql.query(sqlQuery);
     
-
-    res.status(200).send({
-      message: "OK",
-      result : data
-    });
   } catch (err) {
     return res.status(500).send({
       message: "Internel Server Error",
@@ -132,5 +142,5 @@ const deleteStatement = async (req, res) => {
 };
 
 module.exports = {
-  uploadFile,
+  insert,
 };
