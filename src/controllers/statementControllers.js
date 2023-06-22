@@ -13,7 +13,7 @@ const sql = require("mssql");
 //   });
 // }
 
-const uploadFile = async (req, res) => {
+const insert = async (req, res) => {
   try {
     const { file, data } = req.body;
     if (typeof data != "object" || data.length == 0) {
@@ -51,16 +51,17 @@ const uploadFile = async (req, res) => {
       sqlQuery += await setString(
         `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${AccNo}', '${transdate}', '${effdate}', '${particular}', CAST(${Withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${Balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n`
       );
-      console.log(sqlQuery);
+      // console.log(sqlQuery);
 
     }
     //เพิ่มข้อมูล ลงในฐานข้อมูล
-    await sql.connect(sqlConfig);
-    const result = await sql.query(sqlQuery);
-    console.log(result);
+    // await sql.connect(sqlConfig);
+    //const result = await sql.query(sqlQuery);
+    
+
     res.status(200).send({
       message: "OK",
-      result : result
+      result : data
     });
   } catch (err) {
     return res.status(500).send({
@@ -81,5 +82,5 @@ const getAllStatement = async (req, res) => {
 };
 
 module.exports = {
-  uploadFile,
+  insert,
 };
