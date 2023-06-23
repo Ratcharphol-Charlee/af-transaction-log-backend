@@ -113,13 +113,13 @@ const deleteStatement = async (req, res) => {
   try {
     const { year, month, id } = req.query;
     await sql.connect(sqlConfig);
-    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}' AND id = ${id}`;
+    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}' AND seq = ${seq}`;
     const result = await sql.query(sqlQuery);
 
     res.status(200).send({
       message: 'ok',
       req: year + month,
-      deletedId: id,
+      deletedId: seq,
       rowsAffected: result.rowsAffected[0],
     });
   } catch (err) {
