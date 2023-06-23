@@ -133,9 +133,34 @@ const deleteStatement = async (req, res) => {
   }
 };
 
+const queryStatement = async (req, res) => {
+  try {
+    await sql.connect(sqlConfig);
+    const sqlQuery = `SELECT
+    LEFT([period], 4) as stateYear,
+    RIGHT([period], 2) as stateMonth
+  FROM [ACCLife].[dbo].[BBLDetail]
+  GROUP BY [period]
+  ORDER BY stateYear DESC, stateMonth
+`;
+    const result = await sql.query(sqlQuery);
+    console.log(result);
+    res.status(200).send({
+      message: 'ok',
+      result: result.rowsAffected["recordset"]
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: 'Internal Server Error',
+      result: err.message,
+    });
+  }
+};
+
 module.exports = {
   insert,
   deleteStatement,
   selectStatement,
+  queryStatement
 
 };
