@@ -12,6 +12,6 @@ router.route('/select').post(uploadController.selectStatement);
 router.route('/delete').post(uploadController.deleteStatement);
 
 // Query Route
-router.route('/query').post(uploadController.queryStatement);
+router.route('/period').post(uploadController.getPeriodStatement);
 
 module.exports = router;

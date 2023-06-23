@@ -18,7 +18,7 @@ const insert = async (req, res) => {
         result: "data is Object or Array and length more than Zero Only!",
       });
     }
-
+    console.log(data);
     let sqlQuery = "";
     for (let element of data) {
       delete Object.assign(element, {["withdrawal"]: element["debit"] })["debit"];
@@ -48,12 +48,10 @@ const insert = async (req, res) => {
       period = await getYearMonth(transdate);
       transdate = await transdateToStr(transdate);
       effectdate = await effdateToStr(effectdate);
-      sqlQuery += await setString(
-        `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${accno}', '${transdate}', '${effectdate}', '${particular}', CAST(${withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n`
-      );
+      sqlQuery = await setString(sqlQuery,`INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${accno}', '${transdate}', '${effectdate}', '${particular}', CAST(${withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n`);
       
     }
-   
+    console.log(sqlQuery);
     //เพิ่มข้อมูล ลงในฐานข้อมูล
     await sql.connect(sqlConfig);
     const result = await sql.query(sqlQuery);
@@ -89,7 +87,7 @@ const selectStatement = async (req, res) => {
     res.status(200).send({
       message: "ok",
       req: year + month,
-      result: result["recordset"],
+      result: result["recordset"].reverse(),
     });
  
   } catch (err) {
@@ -121,7 +119,7 @@ const deleteStatement = async (req, res) => {
   }
 };
 
-const queryStatement = async (req, res) => {
+const getPeriodStatement = async (req, res) => {
   try {
     await sql.connect(sqlConfig);
     const sqlQuery = `SELECT
@@ -131,11 +129,20 @@ const queryStatement = async (req, res) => {
   GROUP BY [period]
   ORDER BY stateYear DESC, stateMonth
 `;
-    const result = await sql.query(sqlQuery);
-    console.log(result);
+    const sql_result = await sql.query(sqlQuery);
+    let yearMonth = {};
+
+    for(let element of sql_result["recordsets"][0]){
+      if(yearMonth[element["stateYear"]]){
+        yearMonth[element["stateYear"]] = [].concat( yearMonth[element["stateYear"]] , element["stateMonth"] )
+      }else{
+        yearMonth[element["stateYear"]] = [element["stateMonth"]]
+      }
+    }   
+    //console.log(sql_result["recordsets"][0]);
     res.status(200).send({
       message: 'ok',
-      result: result.rowsAffected["recordset"]
+      result: yearMonth
     });
   } catch (err) {
     res.status(500).send({
@@ -149,6 +156,6 @@ module.exports = {
   insert,
   deleteStatement,
   selectStatement,
-  queryStatement
+  getPeriodStatement
 
 };

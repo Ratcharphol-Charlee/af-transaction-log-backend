@@ -33,9 +33,9 @@ async function getYearMonth(date) {
     resolve(year + month);
   });
 }
-async function setString(text) {
+async function setString(oldtext,addtext) {
   return new Promise((resolve, reject) => {
-    resolve(text);
+    resolve(oldtext + addtext);
   });
 }
 
