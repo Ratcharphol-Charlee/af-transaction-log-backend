@@ -13,55 +13,65 @@ const sql = require("mssql");
 //   });
 // }
 
-const uploadFile = async (req, res) => {
+const insert = async (req, res) => {
   try {
     const { file, data } = req.body;
     if (typeof data != "object" || data.length == 0) {
-      return res.status(400).send({
+      return res
+      .status(400)
+      .json({
         message: "Bad Request",
         result: "data is Object or Array and length more than Zero Only!",
       });
     }
 
+    
+
     let sqlQuery = "";
     for (let element of data) {
+      delete Object.assign(element, {["withdrawal"]: element["debit"] })["debit"];
+      delete Object.assign(element, {["deposit"]: element["credit"] })["credit"];
+      delete Object.assign(element, {["particular"]: element["description"] })["description"];
+      delete Object.assign(element, {["terminalno"]: element["channel"] })["channel"];
       let {
-        AccNo,
+        accno,
         transdate,
-        effdate,
+        effectdate,
         particular,
-        Withdrawal,
+        withdrawal,
         deposit,
-        Balance,
+        balance,
         terminalno,
         period,
       } = element;
-      AccNo = AccNo.trim()
-      AccNo = AccNo.replaceAll(/-/g , "")
+
+      accno = accno.trim()
+      accno = accno.replaceAll(/-/g , "")
      
 
-      Withdrawal = Withdrawal == "" ? (0).toFixed(2) : parseFloat(Withdrawal.replaceAll(/,/g,"")).toFixed(2);
+      withdrawal = withdrawal == "" ? (0).toFixed(2) : parseFloat(withdrawal.replaceAll(/,/g,"")).toFixed(2);
       deposit = deposit == "" ? (0).toFixed(2) : parseFloat(deposit.replaceAll(/,/g,"")).toFixed(2);
-      Balance = Balance == "" ? (0).toFixed(2) : parseFloat(Balance.replaceAll(/,/g,"")).toFixed(2);
+      balance = balance == "" ? (0).toFixed(2) : parseFloat(balance.replaceAll(/,/g,"")).toFixed(2);
       
       period = await getYearMonth(transdate);
       transdate = await transdateToStr(transdate);
-      effdate = await effdateToStr(effdate);
-      
+      effectdate = await effdateToStr(effectdate);
+      //console.log(period ,  transdate, effectdate);
       sqlQuery += await setString(
-        `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${AccNo}', '${transdate}', '${effdate}', '${particular}', CAST(${Withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${Balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n`
+        `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${accno}', '${transdate}', '${effectdate}', '${particular}', CAST(${withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n`
       );
       console.log(sqlQuery);
 
     }
-    //เพิ่มข้อมูล ลงในฐานข้อมูล
-    await sql.connect(sqlConfig);
-    const result = await sql.query(sqlQuery);
-    console.log(result);
-    res.status(200).send({
+    return res.status(200).json({
       message: "OK",
-      result : result
+      result : data,
+      sql:sqlQuery
     });
+    //เพิ่มข้อมูล ลงในฐานข้อมูล
+    // await sql.connect(sqlConfig);
+    //const result = await sql.query(sqlQuery);
+    
   } catch (err) {
     return res.status(500).send({
       message: "Internel Server Error",
@@ -131,8 +141,5 @@ const deleteStatement = async (req, res) => {
 };
 
 module.exports = {
-  uploadFile,
-  getAllStatement,
-  selectStatement,
-  deleteStatement,
+  insert,
 };

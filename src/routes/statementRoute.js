@@ -4,9 +4,7 @@ const selectController = require('../controllers/selectController');
 const deleteController = require('../controllers/deleteController');
 
 const router = Router();
-
-// Upload Route
-router.route('/upload').post(uploadController.uploadFile);
+router.route("/insert").post(uploadController.insert);
 
 // Select Route
 router.route('/select').get(async (req, res) => {
