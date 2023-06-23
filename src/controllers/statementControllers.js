@@ -56,22 +56,20 @@ const insert = async (req, res) => {
       period = await getYearMonth(transdate);
       transdate = await transdateToStr(transdate);
       effectdate = await effdateToStr(effectdate);
-      //console.log(period ,  transdate, effectdate);
       sqlQuery += await setString(
         `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${accno}', '${transdate}', '${effectdate}', '${particular}', CAST(${withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n`
       );
-      console.log(sqlQuery);
-
+      
     }
-    return res.status(200).json({
+   
+    //เพิ่มข้อมูล ลงในฐานข้อมูล
+    await sql.connect(sqlConfig);
+    const result = await sql.query(sqlQuery);
+     return res.status(200).json({
       message: "OK",
       result : data,
       sql:sqlQuery
     });
-    //เพิ่มข้อมูล ลงในฐานข้อมูล
-    // await sql.connect(sqlConfig);
-    //const result = await sql.query(sqlQuery);
-    
   } catch (err) {
     return res.status(500).send({
       message: "Internel Server Error",
