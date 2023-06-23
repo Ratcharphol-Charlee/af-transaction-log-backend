@@ -29,17 +29,22 @@ const insert = async (req, res) => {
 
     let sqlQuery = "";
     for (let element of data) {
+      delete Object.assign(element, {["transdate"]: element["TransDate"] })["TransDate"];
+      delete Object.assign(element, {["effdate"]: element["EffectDate"] })["EffectDate"];
+      delete Object.assign(element, {["particular"]: element["Description"] })["Description"];
       delete Object.assign(element, {["Withdrawal"]: element["Debit"] })["Debit"];
       delete Object.assign(element, {["deposit"]: element["Credit"] })["Credit"];
+      delete Object.assign(element, {["terminalno"]: element["Channel"] })["Channel"];
+      
       
       let {
-        AccNo,
-        transdate,
-        effdate,
+        AccNo, 
+        transdate, 
+        effdate, 
         particular,
         Withdrawal,
         deposit,
-        Balance,
+        Balance, 
         terminalno,
         period,
       } = element;
