@@ -82,27 +82,20 @@ const insert = async (req, res) => {
 
 const selectStatement = async (req, res) => {
   try {
-    await sql.connect(sqlConfig);
-    const sqlQuery = `SELECT * FROM [ACCLife].[dbo].[BBLDetail]`;
-    const result = await sql.query(sqlQuery);
+    const { year, month , ascending } = req.body
+    if ( typeof ascending !="boolean")
+    {
+      return res
+      .status(400)
+      .json({
+        message: "Bad Request",
+        result: "ascending is not boolean",
+      });
+    }
+    console.log(year,month);
 
-    res.status(200).send({
-      message: 'ok',
-      result: result.recordset,
-    });
-  } catch (err) {
-    res.status(500).send({
-      message: 'Internal Server Error',
-      result: err.message,
-    });
-  }
-};
-
-const getAllStatement = async (req, res) => {
-  try {
-    const { year, month } = req.query
     await sql.connect(sqlConfig);
-    const sqlQuery=`SELECT TOP (100) * FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}'`
+    const sqlQuery=`SELECT TOP (100) * FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}' ORDER BY [seq] ${(ascending) ? "asc": "desc"}`
     const result = await sql.query(sqlQuery);
   
     res.status(200).send({
@@ -121,15 +114,15 @@ const getAllStatement = async (req, res) => {
 
 const deleteStatement = async (req, res) => {
   try {
-    const { year, month, id } = req.query;
+    const { year, month } = req.body;
+    console.log(year,month);
     await sql.connect(sqlConfig);
-    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}' AND seq = ${seq}`;
+    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}' `;
     const result = await sql.query(sqlQuery);
 
     res.status(200).send({
       message: 'ok',
       req: year + month,
-      deletedId: seq,
       rowsAffected: result.rowsAffected[0],
     });
   } catch (err) {
@@ -142,4 +135,7 @@ const deleteStatement = async (req, res) => {
 
 module.exports = {
   insert,
+  deleteStatement,
+  selectStatement,
+
 };
