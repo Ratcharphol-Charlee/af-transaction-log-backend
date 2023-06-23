@@ -7,12 +7,6 @@ const {
 const { sqlConfig } = require("../config/database-connect");
 const sql = require("mssql");
 
-// async function sqlQueryString(date) {
-//   return new romise((resolve, reject) => {
-//     resolve(new Date(date).toLocaleString("en-GB"));
-//   });
-// }
-
 const insert = async (req, res) => {
   try {
     const { file, data } = req.body;
@@ -24,8 +18,6 @@ const insert = async (req, res) => {
         result: "data is Object or Array and length more than Zero Only!",
       });
     }
-
-    
 
     let sqlQuery = "";
     for (let element of data) {
@@ -90,8 +82,6 @@ const selectStatement = async (req, res) => {
         result: "ascending is not boolean",
       });
     }
-    console.log(year,month);
-
     await sql.connect(sqlConfig);
     const sqlQuery=`SELECT TOP (100) * FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}' ORDER BY [seq] ${(ascending) ? "asc": "desc"}`
     const result = await sql.query(sqlQuery);
