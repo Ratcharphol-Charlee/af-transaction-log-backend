@@ -29,55 +29,47 @@ const insert = async (req, res) => {
 
     let sqlQuery = "";
     for (let element of data) {
-      delete Object.assign(element, {["transdate"]: element["TransDate"] })["TransDate"];
-      delete Object.assign(element, {["effdate"]: element["EffectDate"] })["EffectDate"];
-      delete Object.assign(element, {["particular"]: element["Description"] })["Description"];
-      delete Object.assign(element, {["Withdrawal"]: element["Debit"] })["Debit"];
-      delete Object.assign(element, {["deposit"]: element["Credit"] })["Credit"];
-      delete Object.assign(element, {["terminalno"]: element["Channel"] })["Channel"];
-      
-      
+      delete Object.assign(element, {["withdrawal"]: element["debit"] })["debit"];
+      delete Object.assign(element, {["deposit"]: element["credit"] })["credit"];
+      delete Object.assign(element, {["particular"]: element["description"] })["description"];
+      delete Object.assign(element, {["terminalno"]: element["channel"] })["channel"];
       let {
-        AccNo, 
-        transdate, 
-        effdate, 
+        accno,
+        transdate,
+        effectdate,
         particular,
-        Withdrawal,
+        withdrawal,
         deposit,
-        Balance, 
+        balance,
         terminalno,
         period,
       } = element;
 
-      console.log(element);
-
-      AccNo = AccNo.trim()
-      AccNo = AccNo.replaceAll(/-/g , "")
+      accno = accno.trim()
+      accno = accno.replaceAll(/-/g , "")
      
 
-      Withdrawal = Withdrawal == "" ? (0).toFixed(2) : parseFloat(Withdrawal.replaceAll(/,/g,"")).toFixed(2);
+      withdrawal = withdrawal == "" ? (0).toFixed(2) : parseFloat(withdrawal.replaceAll(/,/g,"")).toFixed(2);
       deposit = deposit == "" ? (0).toFixed(2) : parseFloat(deposit.replaceAll(/,/g,"")).toFixed(2);
-      Balance = Balance == "" ? (0).toFixed(2) : parseFloat(Balance.replaceAll(/,/g,"")).toFixed(2);
+      balance = balance == "" ? (0).toFixed(2) : parseFloat(balance.replaceAll(/,/g,"")).toFixed(2);
       
       period = await getYearMonth(transdate);
       transdate = await transdateToStr(transdate);
-      effdate = await effdateToStr(effdate);
-      
+      effectdate = await effdateToStr(effectdate);
       sqlQuery += await setString(
-        `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${AccNo}', '${transdate}', '${effdate}', '${particular}', CAST(${Withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${Balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n`
+        `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${accno}', '${transdate}', '${effectdate}', '${particular}', CAST(${withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n`
       );
-      // console.log(sqlQuery);
-
+      
     }
-    return res.status(200).json({
+   
+    //เพิ่มข้อมูล ลงในฐานข้อมูล
+    await sql.connect(sqlConfig);
+    const result = await sql.query(sqlQuery);
+     return res.status(200).json({
       message: "OK",
       result : data,
       sql:sqlQuery
     });
-    //เพิ่มข้อมูล ลงในฐานข้อมูล
-    // await sql.connect(sqlConfig);
-    //const result = await sql.query(sqlQuery);
-    
   } catch (err) {
     return res.status(500).send({
       message: "Internel Server Error",
@@ -88,27 +80,20 @@ const insert = async (req, res) => {
 
 const selectStatement = async (req, res) => {
   try {
-    await sql.connect(sqlConfig);
-    const sqlQuery = `SELECT * FROM [ACCLife].[dbo].[BBLDetail]`;
-    const result = await sql.query(sqlQuery);
+    const { year, month , ascending } = req.body
+    if ( typeof ascending !="boolean")
+    {
+      return res
+      .status(400)
+      .json({
+        message: "Bad Request",
+        result: "ascending is not boolean",
+      });
+    }
+    console.log(year,month);
 
-    res.status(200).send({
-      message: 'ok',
-      result: result.recordset,
-    });
-  } catch (err) {
-    res.status(500).send({
-      message: 'Internal Server Error',
-      result: err.message,
-    });
-  }
-};
-
-const getAllStatement = async (req, res) => {
-  try {
-    const { year, month } = req.query
     await sql.connect(sqlConfig);
-    const sqlQuery=`SELECT TOP (100) * FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}'`
+    const sqlQuery=`SELECT TOP (100) * FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}' ORDER BY [seq] ${(ascending) ? "asc": "desc"}`
     const result = await sql.query(sqlQuery);
   
     res.status(200).send({
@@ -127,16 +112,40 @@ const getAllStatement = async (req, res) => {
 
 const deleteStatement = async (req, res) => {
   try {
-    const { year, month, id } = req.query;
+    const { year, month } = req.body;
+    console.log(year,month);
     await sql.connect(sqlConfig);
-    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}' AND id = ${id}`;
+    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${year + month}' `;
     const result = await sql.query(sqlQuery);
 
     res.status(200).send({
       message: 'ok',
       req: year + month,
-      deletedId: id,
       rowsAffected: result.rowsAffected[0],
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: 'Internal Server Error',
+      result: err.message,
+    });
+  }
+};
+
+const queryStatement = async (req, res) => {
+  try {
+    await sql.connect(sqlConfig);
+    const sqlQuery = `SELECT
+    LEFT([period], 4) as stateYear,
+    RIGHT([period], 2) as stateMonth
+  FROM [ACCLife].[dbo].[BBLDetail]
+  GROUP BY [period]
+  ORDER BY stateYear DESC, stateMonth
+`;
+    const result = await sql.query(sqlQuery);
+    console.log(result);
+    res.status(200).send({
+      message: 'ok',
+      result: result.rowsAffected["recordset"]
     });
   } catch (err) {
     res.status(500).send({
@@ -148,4 +157,8 @@ const deleteStatement = async (req, res) => {
 
 module.exports = {
   insert,
+  deleteStatement,
+  selectStatement,
+  queryStatement
+
 };
