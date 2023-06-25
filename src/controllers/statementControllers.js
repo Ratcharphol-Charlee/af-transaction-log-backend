@@ -64,7 +64,7 @@ const insert = async (req, res) => {
       effectdate = await effdateToStr(effectdate);
       sqlQuery = await setString(
         sqlQuery,
-        `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${accno}', '${transdate}', '${effectdate}', '${particular}', CAST(${withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\nGO \n`
+        `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${accno}', '${transdate}', '${effectdate}', '${particular}', CAST(${withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n \n`
       );
     }
     console.log(sqlQuery);
@@ -127,9 +127,7 @@ const deleteStatement = async (req, res) => {
     const { year, month } = req.body;
     console.log(year, month);
     await sql.connect(sqlConfig);
-    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${
-      year + month
-    }' `;
+    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${String(year) + String(month)}' `;
     const result = await sql.query(sqlQuery);
 
     res.status(200).send({
@@ -139,6 +137,7 @@ const deleteStatement = async (req, res) => {
     });
   } catch (err) {
     res.status(500).send({
+
       message: "Internal Server Error",
       result: err.message,
     });
