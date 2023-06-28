@@ -16,7 +16,7 @@ const insert = async (req, res) => {
         result: "data is Object or Array and length more than Zero Only!",
       });
     }
-    console.log(data);
+    
     let sqlQuery = "";
     for (let element of data) {
       delete Object.assign(element, { ["withdrawal"]: element["debit"] })[
@@ -67,7 +67,7 @@ const insert = async (req, res) => {
         `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${accno}', '${transdate}', '${effectdate}', '${particular}', CAST(${withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n \n`
       );
     }
-    console.log(sqlQuery);
+
     //เพิ่มข้อมูล ลงในฐานข้อมูล
     await sql.connect(sqlConfig);
     const result = await sql.query(sqlQuery);
@@ -123,7 +123,7 @@ FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${String(year) + String(month)}
 const deleteStatement = async (req, res) => {
   try {
     const { year, month,accno } = req.body;
-    console.log(year, month);
+  
     await sql.connect(sqlConfig);
     const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${String(year) + String(month)}' and AccNo  = '${accno}'`;
     const result = await sql.query(sqlQuery);
@@ -150,7 +150,7 @@ const getPeriodStatement = async (req, res) => {
      RIGHT([period], 2) as stateMonth
 FROM [ACCLife].[dbo].[BBLDetail] GROUP BY  [period] ORDER BY stateYear DESC , stateMonth`;
     const sql_result = await sql.query(sqlQuery);
-    console.log(">>>", sql_result["recordset"]);
+
     let yearMonth = {};
 
     for (let element of sql_result["recordset"]) {
@@ -164,7 +164,7 @@ FROM [ACCLife].[dbo].[BBLDetail] GROUP BY  [period] ORDER BY stateYear DESC , st
       }
     }
 
-    //console.log(sql_result["recordsets"][0]);
+  
     res.status(200).send({
       message: "ok",
       result: yearMonth,
@@ -180,14 +180,14 @@ FROM [ACCLife].[dbo].[BBLDetail] GROUP BY  [period] ORDER BY stateYear DESC , st
 const getAccNostatement = async (req, res) => {
   try {
     const {period}=req.body
-    console.log(period);
+
     await sql.connect(sqlConfig);
     const sqlQuery = `SELECT 
     [AccNo] FROM [ACCLife].[dbo].[BBLDetail] where period='${period}'  GROUP BY  [AccNo]`;
     const sql_result = await sql.query(sqlQuery);
-    console.log(">>>", sql_result["recordset"]);
+
     const resultDB=sql_result["recordset"]
-    //console.log(sql_result["recordsets"][0]);
+
     res.status(200).send({
       message: "ok",
       result: resultDB,
