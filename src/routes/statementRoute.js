@@ -14,4 +14,6 @@ router.route('/delete').post(uploadController.deleteStatement);
 // Query Route
 router.route('/period').post(uploadController.getPeriodStatement);
 
+router.route('/getaccno').post(uploadController.getAccNostatement);
+
 module.exports = router;

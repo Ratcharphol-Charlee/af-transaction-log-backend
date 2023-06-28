@@ -109,7 +109,7 @@ FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${String(year) + String(month)}
 
     res.status(200).send({
       message: "ok",
-      req: String(year) + String(month) + "accno" +accno,
+      req: String(year) + String(month) +accno,
       result: result["recordset"],
     });
   } catch (err) {
@@ -130,7 +130,7 @@ const deleteStatement = async (req, res) => {
 
     res.status(200).send({
       message: "ok",
-      req: String(year) + String(month) + "accno" +accno,
+      req: String(year) + String(month)  +accno,
       rowsAffected: result.rowsAffected[0],
     });
   } catch (err) {
@@ -179,29 +179,18 @@ FROM [ACCLife].[dbo].[BBLDetail] GROUP BY  [period] ORDER BY stateYear DESC , st
 
 const getAccNostatement = async (req, res) => {
   try {
+    const {period}=req.body
+    console.log(period);
     await sql.connect(sqlConfig);
-    const sqlQuery = `SELECT
-    CAST(([AccNo], 10) AS decimal)  as stateAccNo,
-FROM [ACCLife].[dbo].[BBLDetail] GROUP BY  [AccNo] ORDER BY Accno`;
+    const sqlQuery = `SELECT 
+    [AccNo] FROM [ACCLife].[dbo].[BBLDetail] where period='${period}'  GROUP BY  [AccNo]`;
     const sql_result = await sql.query(sqlQuery);
     console.log(">>>", sql_result["recordset"]);
-    let AccNO = {};
-
-    for (let element of sql_result["recordset"]) {
-      if (yearMonth[element["stateYear"]]) {
-        yearMonth[element["stateYear"]] = [].concat(
-          yearMonth[element["stateYear"]],
-          element["stateMonth"]
-        );
-      } else {
-        yearMonth[element["stateYear"]] = [element["stateMonth"]];
-      }
-    }
-
+    const resultDB=sql_result["recordset"]
     //console.log(sql_result["recordsets"][0]);
     res.status(200).send({
       message: "ok",
-      result: yearMonth,
+      result: resultDB,
     });
   } catch (err) {
     res.status(500).send({
@@ -216,4 +205,5 @@ module.exports = {
   deleteStatement,
   selectStatement,
   getPeriodStatement,
+  getAccNostatement
 };
