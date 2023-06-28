@@ -86,7 +86,7 @@ const insert = async (req, res) => {
 
 const selectStatement = async (req, res) => {
   try {
-    const { year, month, ascending } = req.body;
+    const { year, month, ascending,accno } = req.body;
     if (typeof ascending != "boolean") {
       return res.status(400).json({
         message: "Bad Request",
@@ -104,14 +104,12 @@ const selectStatement = async (req, res) => {
     ,[Balance]
     ,[terminalno]
     ,[period]
-FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${
-      year + month
-    }' ORDER BY [seq] ${ascending ? "asc" : "desc"}`;
+FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${String(year) + String(month)}' and AccNo = '${accno}' ORDER BY [seq] ${ascending ? "asc" : "desc"}`;
     const result = await sql.query(sqlQuery);
 
     res.status(200).send({
       message: "ok",
-      req: year + month,
+      req: String(year) + String(month) + "accno" +accno,
       result: result["recordset"],
     });
   } catch (err) {
@@ -124,15 +122,15 @@ FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${
 
 const deleteStatement = async (req, res) => {
   try {
-    const { year, month } = req.body;
+    const { year, month,accno } = req.body;
     console.log(year, month);
     await sql.connect(sqlConfig);
-    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${String(year) + String(month)}' `;
+    const sqlQuery = `DELETE FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${String(year) + String(month)}' and AccNo  = '${accno}'`;
     const result = await sql.query(sqlQuery);
 
     res.status(200).send({
       message: "ok",
-      req: year + month,
+      req: String(year) + String(month) + "accno" +accno,
       rowsAffected: result.rowsAffected[0],
     });
   } catch (err) {
@@ -154,6 +152,40 @@ FROM [ACCLife].[dbo].[BBLDetail] GROUP BY  [period] ORDER BY stateYear DESC , st
     const sql_result = await sql.query(sqlQuery);
     console.log(">>>", sql_result["recordset"]);
     let yearMonth = {};
+
+    for (let element of sql_result["recordset"]) {
+      if (yearMonth[element["stateYear"]]) {
+        yearMonth[element["stateYear"]] = [].concat(
+          yearMonth[element["stateYear"]],
+          element["stateMonth"]
+        );
+      } else {
+        yearMonth[element["stateYear"]] = [element["stateMonth"]];
+      }
+    }
+
+    //console.log(sql_result["recordsets"][0]);
+    res.status(200).send({
+      message: "ok",
+      result: yearMonth,
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: "Internal Server Error",
+      result: err.message,
+    });
+  }
+};
+
+const getAccNostatement = async (req, res) => {
+  try {
+    await sql.connect(sqlConfig);
+    const sqlQuery = `SELECT
+    CAST(([AccNo], 10) AS decimal)  as stateAccNo,
+FROM [ACCLife].[dbo].[BBLDetail] GROUP BY  [AccNo] ORDER BY Accno`;
+    const sql_result = await sql.query(sqlQuery);
+    console.log(">>>", sql_result["recordset"]);
+    let AccNO = {};
 
     for (let element of sql_result["recordset"]) {
       if (yearMonth[element["stateYear"]]) {
