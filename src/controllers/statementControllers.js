@@ -94,7 +94,7 @@ const selectStatement = async (req, res) => {
       });
     }
     await sql.connect(sqlConfig);
-    const sqlQuery = `SELECT [seq]
+    const sqlQuery = `SELECT [seq] as 'key'
     ,[AccNo]
     ,  CONVERT(VARCHAR(20),[transdate] ,121) as transdate
     , CONVERT(VARCHAR(20),[effdate] ,121) as effdate
