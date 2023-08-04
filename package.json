@@ -5,7 +5,7 @@
     "express": "^4.18.2",
     "jose": "^4.14.4",
     "mssql": "^9.1.1",
-    "nodemon": "^2.0.22"
+    "nodemon": "^3.0.1"
   },
   "name": "it66-1-at-rvp",
   "version": "1.0.0",

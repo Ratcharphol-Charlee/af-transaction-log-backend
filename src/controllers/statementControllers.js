@@ -66,17 +66,21 @@ const insert = async (req, res) => {
         sqlQuery,
         `INSERT [dbo].[bbldetail] ([AccNo], [transdate], [effdate], [particular], [Withdrawal], [deposit], [Balance], [terminalno], [period]) VALUES ('${accno}', '${transdate}', '${effectdate}', '${particular}', CAST(${withdrawal} AS Numeric(19, 2)), CAST(${deposit} AS Numeric(19, 2)), CAST(${balance} AS Numeric(19, 2)), '${terminalno}', '${period}')\n \n`
       );
+      console.log(sqlQuery);
     }
 
     //เพิ่มข้อมูล ลงในฐานข้อมูล
-    await sql.connect(sqlConfig);
+    let conn = await sql.connect(sqlConfig);
     const result = await sql.query(sqlQuery);
+    await conn.close();
     return res.status(200).json({
       message: "OK",
       result: data,
       sql: sqlQuery,
     });
+    
   } catch (err) {
+    console.log("ERROR", err);
     return res.status(500).send({
       message: "Internel Server Error",
       result: err.message,
@@ -86,7 +90,7 @@ const insert = async (req, res) => {
 
 const selectStatement = async (req, res) => {
   try {
-    const { year, month, ascending,accno } = req.body;
+    const { year, month, ascending , accno } = req.body;
     if (typeof ascending != "boolean") {
       return res.status(400).json({
         message: "Bad Request",
@@ -106,10 +110,9 @@ const selectStatement = async (req, res) => {
     ,[period]
 FROM [ACCLife].[dbo].[BBLDetail] WHERE period = '${String(year) + String(month)}' and AccNo = '${accno}' ORDER BY [seq] ${ascending ? "asc" : "desc"}`;
     const result = await sql.query(sqlQuery);
-
     res.status(200).send({
       message: "ok",
-      req: String(year) + String(month) +accno,
+      req: String(year) + String(month) + accno,
       result: result["recordset"],
     });
   } catch (err) {
@@ -135,7 +138,6 @@ const deleteStatement = async (req, res) => {
     });
   } catch (err) {
     res.status(500).send({
-
       message: "Internal Server Error",
       result: err.message,
     });
@@ -179,8 +181,7 @@ FROM [ACCLife].[dbo].[BBLDetail] GROUP BY  [period] ORDER BY stateYear DESC , st
 
 const getAccNostatement = async (req, res) => {
   try {
-    const {period}=req.body
-
+    const { period }=req.body
     await sql.connect(sqlConfig);
     const sqlQuery = `SELECT 
     [AccNo] FROM [ACCLife].[dbo].[BBLDetail] where period='${period}'  GROUP BY  [AccNo]`;

@@ -3,7 +3,7 @@ const bodyParser = require("body-parser");
 const cors = require('cors')
 const app = express();
 const port = 3000;
-
+const jose = require('jose')
 //middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -17,11 +17,11 @@ app.use((req, res, next) => {
 //-- กำหนด Route ของ Controller--//
 const statementRoute = require("./src/routes/statementRoute");
 
-app.get("/", function (req, res) {
-  res.send("Server is Runing....");
-});
+const authenRoute = require("./src/routes/authenRoute");
+
 
 // สร้าง Route ของ statement
 app.use("/statement", statementRoute);
+app.use("/",authenRoute);
 console.log("Link => http://127.0.0.1:" + port);
 app.listen(port);
